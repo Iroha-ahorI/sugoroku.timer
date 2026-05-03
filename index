@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>すごろくタイマー</title>
+<style>
+  body {
+    background: #116709;
+    color: #fff;
+    text-align: center;
+    font-family: sans-serif;
+    padding-top: 40px;
+  }
+
+  #board {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  .cell {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #fff;
+    margin: 3px;
+    position: relative;
+  }
+
+  #piece {
+    width: 40px;
+    height: 40px;
+    background: yellow;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    transition: transform 0.3s linear;
+  }
+
+  input {
+    width: 70px;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+  }
+
+  #time {
+    font-size: 3rem;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>すごろくタイマー</h1>
+
+<div>
+  <input id="min" type="number" min="0" placeholder="分">
+  <input id="sec" type="number" min="0" max="59" placeholder="秒">
+</div>
+<button id="startBtn">スタート</button>
+
+<div id="time">00:00</div>
+
+<div id="board"></div>
+
+<script>
+  const cellCount = 20; // マスの数
+  const board = document.getElementById("board");
+
+  // 盤面生成（中央に数字、1マス目にSTART、20マス目にGOAL）
+for (let i = 0; i < cellCount; i++) {
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  cell.style.position = "relative";
+
+  // 中央の数字
+  const number = document.createElement("div");
+  number.textContent = i + 1;
+  number.style.position = "absolute";
+  number.style.top = "50%";
+  number.style.left = "50%";
+  number.style.transform = "translate(-50%, -50%)";
+  number.style.fontSize = "1.4rem";
+  number.style.fontWeight = "bold";
+  number.style.color = "#fff";
+
+  cell.appendChild(number);
+
+  // START / GOAL のラベル（枠外下）
+  if (i === 0) {
+    const startLabel = document.createElement("div");
+    startLabel.textContent = "START";
+    startLabel.style.position = "absolute";
+    startLabel.style.bottom = "-22px";
+    startLabel.style.left = "50%";
+    startLabel.style.transform = "translateX(-50%)";
+    startLabel.style.fontSize = "0.9rem";
+    startLabel.style.color = "#0f0";
+    cell.appendChild(startLabel);
+  }
+
+  if (i === cellCount - 1) {
+    const goalLabel = document.createElement("div");
+    goalLabel.textContent = "GOAL";
+    goalLabel.style.position = "absolute";
+    goalLabel.style.bottom = "-22px";
+    goalLabel.style.left = "50%";
+    goalLabel.style.transform = "translateX(-50%)";
+    goalLabel.style.fontSize = "0.9rem";
+    goalLabel.style.color = "#f00";
+    cell.appendChild(goalLabel);
+  }
+
+  board.appendChild(cell);
+}
+
+  // コマ生成
+  const piece = document.createElement("div");
+  piece.id = "piece";
+  board.children[0].appendChild(piece);
+
+  let timerId = null;
+
+  function formatTime(t) {
+    const m = Math.floor(t / 60);
+    const s = t % 60;
+    return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  }
+
+  document.getElementById("startBtn").addEventListener("click", () => {
+    const min = parseInt(document.getElementById("min").value || "0", 10);
+    const sec = parseInt(document.getElementById("sec").value || "0", 10);
+    let totalSec = min * 60 + sec;
+
+    if (totalSec <= 0) {
+      alert("時間を入力してください");
+      return;
+    }
+
+    if (timerId) clearInterval(timerId);
+
+    const totalTime = totalSec;
+    document.getElementById("time").textContent = formatTime(totalSec);
+
+    timerId = setInterval(() => {
+      totalSec--;
+
+      // 進行割合（0〜1）
+      const progress = (totalTime - totalSec) / totalTime;
+
+      // コマの位置（0〜cellCount-1）
+      const index = Math.min(
+        Math.floor(progress * cellCount),
+        cellCount - 1
+      );
+
+      // コマ移動
+      board.children[index].appendChild(piece);
+
+      // タイマー表示更新
+      document.getElementById("time").textContent = formatTime(totalSec);
+
+      if (totalSec <= 0) {
+        clearInterval(timerId);
+        document.getElementById("time").textContent = "ゴール！！";
+      }
+    }, 1000);
+  });
+</script>
+
+</body>
+</html>
